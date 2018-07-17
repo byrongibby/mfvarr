@@ -37,18 +37,18 @@ function(m, reps, burn, save.draws=FALSE) {
     Y <- rbind(Z.draw[,(M+1):(K+1)], YD)
     Z <- rbind(Z.draw, ZD)
     # VAR posterior mean and variance.
-    B. <- solve(crossprod(Z),crossprod(Z,Y))
+    B. <- solve.qr(qr(Z),Y)
     b. <- as.vector(B.) 
     S. <- S.draw%x%solve(crossprod(Z))
     # Find nearest positive semi-definite matrix if S. doesn't factorise.
-    try(cholS. <- chol(S.), cholS. <- chol(nearestSPD(S.)))
+    cholS. <- chol(S.)
     # Look for stable VAR parameters, abandon if not found after 100 draws.
     for(try_i in 1:100) {
       # Draw VAR coefficients.
       b.draw <- b. + t(rnorm(K*(M+K*p))%*%cholS.)
       B.draw <- matrix(b.draw,M+K*p,K)
       # If stable VAR drawn...
-      if(stable(B.draw,K,p,M)) {
+      if(stable(B.draw,K,p,M,allow_ur=TRUE)) {
         # Draw VAR covariance coeffcients.
         S.draw <- riwish(nrow(Y), solve(crossprod(Y-Z%*%B.draw)))
         # Update VAR parameters in SSModel.
