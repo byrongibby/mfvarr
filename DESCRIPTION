@@ -1,0 +1,9 @@
+Package: mfvarr
+Type: Package
+Title: Estimate and forecast with mixed-frequency VARs
+Version: 1.0
+Date: 2018-07-17
+Author: Byron Botha
+Maintainer: Byron Botha <Byron.Botha@resbank.co.za>
+Description: Naive implementation of a simple mixed-frequency VAR using Bayesian techniques for the purposes of forecasting economic variables.
+License: GPL-2
