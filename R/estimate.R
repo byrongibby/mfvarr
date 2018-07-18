@@ -15,7 +15,8 @@ function(m, reps, burn, save.draws=FALSE) {
                                            T=m$filtmat$Acomp, 
                                            R=diag(M+K*p), 
                                            Q=m$filtmat$Scomp, 
-                                           a1=m$filtmat$y1), 
+                                           a1=m$filtmat$y1,
+                                           P1=m$filtmat$P1), 
                     H=matrix(0,K,K))
   ### List of function output
   post <- list()
