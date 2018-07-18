@@ -52,7 +52,7 @@ function(monthly, quarterly, p=3, prior="default") {
   y.init <- window(y.init, start=cut.off+c(0,1))
   # Create a prior for starting state (Kalman Filter) from training data
   y1 <- as.matrix(c(1,as.vector(t(YY[(nrow(YY)-p+1):nrow(YY),]))))
-  P1 <- diag(sigma)
+  P1 <- diag(c(prior$hp$kappa, sigma))
 
   #------------------- CREATE OBSERVATION ARRAY -------------------#
 
