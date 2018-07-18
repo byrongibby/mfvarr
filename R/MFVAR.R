@@ -10,9 +10,9 @@ function(monthly, quarterly, p=3, prior="default") {
   # Breadth of monthly and quarterly data 
   Kq <- NCOL(quarterly)
   Km <- NCOL(monthly)
-  # Start month of quarterly data 2 months prior to starting quarter
+  # Start month of quarterly data (2 months prior to "starting quarter")
   month.start <- c(floor(tsp(quarterly)[1]), tsp(quarterly)[1]%%1*12+1)
-  # Combine monthly and quarterly time series
+  # Create quarterly and monthly observation time series
   xq <- ts(matrix(rep(quarterly,each=3),NROW(quarterly)*3,Kq), 
            frequency = 12, 
            start = month.start)
@@ -22,6 +22,7 @@ function(monthly, quarterly, p=3, prior="default") {
   colnames(y.init) <- c(colnames(monthly), colnames(quarterly))
   # Insert NA for unobserved data
   for(i in 1:nrow(xq)) if(i%%3 != 0) xq[i,] <- NA
+  # Combine monthly and quarterly time series
   x <- cbind(xm, xq)
   colnames(x) <- c(colnames(monthly), colnames(quarterly))
 
@@ -31,7 +32,7 @@ function(monthly, quarterly, p=3, prior="default") {
   K <- ncol(y.init)
   # Determine cut-off date for training data (10%)
   # NB! this also ensures that the data for estimation always starts on the
-  # first month of a quarter (rest of code assumes this)!
+  # first month of a quarter (rest of code assumes this!)
   dates   <- time(y.init)
   cut.off <- c(floor(dates[ceiling(length(dates)*0.1)])-1,12)
   # Training data
@@ -98,9 +99,8 @@ function(monthly, quarterly, p=3, prior="default") {
   # VAR (companion) matrices
   Acomp <- rbind(c(1,rep(0,K*p)),t(B), 
     cbind(rep(0,K*(p-1)),diag(K*(p-1)),matrix(0,K*(p-1),K)))
-  S <- crossprod(Y-Z%*%B)/(nrow(Y)-M-K*p)
   Scomp <- matrix(0,K*p+M, K*p+M)
-  Scomp[(M+1):(K+M),(M+1):(K+M)] <- S
+  Scomp[(M+1):(K+M),(M+1):(K+M)] <- crossprod(Y-Z%*%B)/(nrow(Y)-M-K*p)
 
   #------------------- DUMMY DATA FOR BVAR -------------------#
   
@@ -141,7 +141,7 @@ function(monthly, quarterly, p=3, prior="default") {
   
   out <- list("obs"=x,
               "lag"=p,
-              "filtmat"=list("ML_z"=ML_z,"Acomp"=Acomp,"Scomp"=Scomp,"y1"=y1),
+              "filtmat"=list("ML_z"=ML_z,"Acomp"=Acomp,"Scomp"=Scomp,"y1"=y1,"P1"=P1),
               "dummy"=list("YD"=YD,"ZD"=ZD))
   class(out) <- "MFVAR model"
   return(out)
