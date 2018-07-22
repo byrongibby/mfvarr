@@ -72,14 +72,18 @@ function(m, reps, burn, save.draws=FALSE) {
 
   #------------------- OUTPUT -------------------#
 
-  out <- list()
+  out <- list(regressand=NULL,coef=NULL,cov=NULL)
   if(save.draws) out$post <- post
   # Return the median as the posterior point estimate.
-  out$regressand <- matrix(apply(post$Y,2,median),nrow(m$obs),K)
-  out$A          <- matrix(apply(post$A,2,median),K,M+K*p)
-  out$S          <- matrix(apply(post$S,2,median),K,K)
+  out$regressand$median <- matrix(apply(post$Y,2,quantile,probs=0.500),nrow(m$obs),K)
+  out$regressand$upper  <- matrix(apply(post$Y,2,quantile,probs=0.975),nrow(m$obs),K)
+  out$regressand$lower  <- matrix(apply(post$Y,2,quantile,probs=0.025),nrow(m$obs),K)
+  out$coef <- matrix(apply(post$A,2,median),K,M+K*p)
+  out$cov <- matrix(apply(post$S,2,median),K,K)
   # Convert to time series.
-  out$regressand <- ts(out$regressand,frequency=12,start=tsp(m$obs)[1])
+  out$regressand$median <- ts(out$regressand$median,frequency=12,start=tsp(m$obs)[1])
+  out$regressand$upper <- ts(out$regressand$upper,frequency=12,start=tsp(m$obs)[1])
+  out$regressand$lower <- ts(out$regressand$lower,frequency=12,start=tsp(m$obs)[1])
   colnames(out$regressand) <- colnames(m$obs)
   return(out)
 }
