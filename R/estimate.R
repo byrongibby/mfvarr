@@ -75,9 +75,9 @@ function(m, reps, burn, save.draws=FALSE) {
   out <- list(regressand=NULL,coef=NULL,cov=NULL)
   if(save.draws) out$post <- post
   # Return the median as the posterior point estimate.
-  out$regressand$median <- matrix(apply(post$Y,2,quantile,probs=0.500),nrow(m$obs),K)
-  out$regressand$upper  <- matrix(apply(post$Y,2,quantile,probs=0.975),nrow(m$obs),K)
-  out$regressand$lower  <- matrix(apply(post$Y,2,quantile,probs=0.025),nrow(m$obs),K)
+  out$regressand$median <- matrix(apply(post$Y,2,quantile,probs=0.50),nrow(m$obs),K)
+  out$regressand$upper  <- matrix(apply(post$Y,2,quantile,probs=0.95),nrow(m$obs),K)
+  out$regressand$lower  <- matrix(apply(post$Y,2,quantile,probs=0.05),nrow(m$obs),K)
   out$coef <- matrix(apply(post$A,2,median),K,M+K*p)
   out$cov <- matrix(apply(post$S,2,median),K,K)
   # Convert to time series.
