@@ -1,5 +1,5 @@
 estimate <-
-function(m, reps, burn, save.draws=FALSE) {
+function(m, reps, burn) {
   
   #------------------- SET UP -------------------#
 
@@ -19,9 +19,12 @@ function(m, reps, burn, save.draws=FALSE) {
                     H=matrix(0,K,K))
   ### List of function output
   post <- list()
-  post$Y    <- matrix(NA, reps-burn, K*nrow(m$obs))
-  post$A    <- matrix(NA, reps-burn, K*(M+K*p))
-  post$S    <- matrix(NA, reps-burn, K*K)
+  post$p <- p
+  post$K <- K 
+  post$Y <- matrix(NA, reps-burn, K*nrow(m$obs))
+  post$Z <- matrix(NA, reps-burn, (K*p+M)*nrow(m$obs))
+  post$A <- matrix(NA, reps-burn, K*(M+K*p))
+  post$S <- matrix(NA, reps-burn, K*K)
 
   #------------------- MCMC LOOP -------------------#
   
@@ -62,7 +65,8 @@ function(m, reps, burn, save.draws=FALSE) {
     # Save draws.
     if(i > burn) {
       post$Y[i - burn,] <- as.vector(Z.draw[,(M+1):(K+1)])
-      post$A[i - burn,] <- b.draw
+      post$Z[i - burn,] <- as.vector(Z.draw[,])
+      post$B[i - burn,] <- b.draw
       post$S[i - burn,] <- as.vector(S.draw)
     }
   }
@@ -72,18 +76,18 @@ function(m, reps, burn, save.draws=FALSE) {
 
   #------------------- OUTPUT -------------------#
 
-  out <- list(regressand=NULL,coef=NULL,cov=NULL)
-  if(save.draws) out$post <- post
+  out <- list()
+  out$post <- post
+  out$regressand <- NULL 
   # Return the median as the posterior point estimate.
   out$regressand$median <- matrix(apply(post$Y,2,quantile,probs=0.50),nrow(m$obs),K)
   out$regressand$upper  <- matrix(apply(post$Y,2,quantile,probs=0.95),nrow(m$obs),K)
   out$regressand$lower  <- matrix(apply(post$Y,2,quantile,probs=0.05),nrow(m$obs),K)
-  out$coef <- matrix(apply(post$A,2,median),K,M+K*p)
-  out$cov <- matrix(apply(post$S,2,median),K,K)
   # Convert to time series.
   out$regressand$median <- ts(out$regressand$median,frequency=12,start=tsp(m$obs)[1])
-  out$regressand$upper <- ts(out$regressand$upper,frequency=12,start=tsp(m$obs)[1])
-  out$regressand$lower <- ts(out$regressand$lower,frequency=12,start=tsp(m$obs)[1])
+  out$regressand$upper  <- ts(out$regressand$upper,frequency=12,start=tsp(m$obs)[1])
+  out$regressand$lower  <- ts(out$regressand$lower,frequency=12,start=tsp(m$obs)[1])
+  # Name the variables accordingly
   colnames(out$regressand$median) <- colnames(m$obs)
   colnames(out$regressand$upper) <- colnames(m$obs)
   colnames(out$regressand$lower) <- colnames(m$obs)
