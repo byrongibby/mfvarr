@@ -52,7 +52,7 @@ function(m, reps, burn) {
       B.draw <- matrix(b.draw,M+K*p,K)
       # If stable VAR drawn...
       if(stable(B.draw,K,p,M,allow_ur=TRUE)) {
-        # Draw VAR covariance coeffcients.
+        # Draw VAR covariance coefficients.
         S.draw <- riwish(nrow(Y), solve(crossprod(Y-Z%*%B.draw)))
         # Update VAR parameters in SSModel.
         SSMvar["T"][(M+1):(K+M),,1] <- t(B.draw)
@@ -77,7 +77,7 @@ function(m, reps, burn) {
   #------------------- OUTPUT -------------------#
 
   out <- list()
-  out$post <- post
+  out$draws <- post
   out$regressand <- NULL 
   # Return the median as the posterior point estimate.
   out$regressand$median <- matrix(apply(post$Y,2,quantile,probs=0.50),nrow(m$obs),K)
@@ -87,9 +87,15 @@ function(m, reps, burn) {
   out$regressand$median <- ts(out$regressand$median,frequency=12,start=tsp(m$obs)[1])
   out$regressand$upper  <- ts(out$regressand$upper,frequency=12,start=tsp(m$obs)[1])
   out$regressand$lower  <- ts(out$regressand$lower,frequency=12,start=tsp(m$obs)[1])
-  # Name the variables accordingly
+  # Name the variables accordingly.
   colnames(out$regressand$median) <- colnames(m$obs)
   colnames(out$regressand$upper) <- colnames(m$obs)
   colnames(out$regressand$lower) <- colnames(m$obs)
+  # Nowcast-quarter draws
+  Y_array      <- array(t(post$Y), dim=c(nrow(m$obs),K,reps-burn))
+  last_quarter <- apply(Y_array[(nrow(m$obs)-2):nrow(m$obs),,], c(2,3), mean)
+  out$nowcast  <- split(last_quarter, slice.index(last_quarter, 1))
+  # Name the densities after their corresponding variables.
+  names(out$nowcast) <- colnames(m$obs)
   return(out)
 }
