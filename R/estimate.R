@@ -1,8 +1,10 @@
-estimate <-
-function(m, reps, burn) {
+estimate <- function(m, reps, burn, seed=set.seed(runif(1,0,1e6))) 
+{
   
   #------------------- SET UP -------------------#
 
+  set.seed(seed)
+  
   # VAR model parameters 
   M <- 1
   K <- ncol(m$obs)
@@ -76,20 +78,9 @@ function(m, reps, burn) {
 
   #------------------- OUTPUT -------------------#
 
-  out <- list()
-  out$post <- post
-  out$regressand <- NULL 
-  # Return the median as the posterior point estimate.
-  out$regressand$median <- matrix(apply(post$Y,2,quantile,probs=0.50),nrow(m$obs),K)
-  out$regressand$upper  <- matrix(apply(post$Y,2,quantile,probs=0.95),nrow(m$obs),K)
-  out$regressand$lower  <- matrix(apply(post$Y,2,quantile,probs=0.05),nrow(m$obs),K)
-  # Convert to time series.
-  out$regressand$median <- ts(out$regressand$median,frequency=12,start=tsp(m$obs)[1])
-  out$regressand$upper  <- ts(out$regressand$upper,frequency=12,start=tsp(m$obs)[1])
-  out$regressand$lower  <- ts(out$regressand$lower,frequency=12,start=tsp(m$obs)[1])
-  # Name the variables accordingly
-  colnames(out$regressand$median) <- colnames(m$obs)
-  colnames(out$regressand$upper) <- colnames(m$obs)
-  colnames(out$regressand$lower) <- colnames(m$obs)
+  out <- post
+  out$tsp <- tsp(m$obs)
+  out$names <- colnames(m$obs)
+  class(out) <- "MFVAR"
   return(out)
 }

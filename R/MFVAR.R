@@ -117,23 +117,23 @@ function(monthly, quarterly, p=3, prior="default") {
     m7 <- t(m4)
     m8 <- diag(1:p)
     m9 <- matrix(0,K,K*p)
-    YD <- rbind(prior$hp$lambda*m1*(1/prior$hp$tau), m2, m1, m3)
-    ZD <- cbind(rbind(m4, m5, m6/prior$hp$kappa),
-                rbind((m8^prior$hp$rho)%x%m1*(1/prior$hp$tau), m9, m7))
+    YD <- rbind(prior$hyperparams$lambda*m1*(1/prior$hyperparams$tau), m2, m1, m3)
+    ZD <- cbind(rbind(m4, m5, m6/prior$hyperparams$kappa),
+                rbind((m8^prior$hyperparams$rho)%x%m1*(1/prior$hyperparams$tau), m9, m7))
   }
   # artificial data for sum of coefficients prior
   if(any(prior$prior=="sc")) {
     m1 <- diag(mu)
     m2 <- matrix(0,K,M)
     m3 <- matrix(rep(1,p),1,p)
-    YD <- rbind(YD, prior$hp$lambda*m1/prior$hp$gamma)
-    ZD <- rbind(ZD, cbind(m2,m3%x%(prior$hp$lambda*m1/prior$hp$gamma)))
+    YD <- rbind(YD, prior$hyperparams$lambda*m1/prior$hyperparams$gamma)
+    ZD <- rbind(ZD, cbind(m2,m3%x%(prior$hyperparams$lambda*m1/prior$hyperparams$gamma)))
   }
   # artificial data for common stochastic trends prior
   if(any(prior$prior=="st")) {
     m1 <- c(1,rep(0,M-1))
-    YD <- rbind(YD, prior$hp$delta*mu)
-    ZD <- rbind(ZD, prior$hp$delta*c(m1, rep(mu,p)))
+    YD <- rbind(YD, prior$hyperparams$delta*mu)
+    ZD <- rbind(ZD, prior$hyperparams$delta*c(m1, rep(mu,p)))
   }
 
   #------------------- OUTPUT -------------------#
@@ -142,6 +142,6 @@ function(monthly, quarterly, p=3, prior="default") {
               "lag"=p,
               "filtmat"=list("ML_z"=ML_z,"Acomp"=Acomp,"Scomp"=Scomp,"y1"=y1),
               "dummy"=list("YD"=YD,"ZD"=ZD))
-  class(out) <- "MFVAR model"
+  class(out) <- "MFVAR.model"
   return(out)
 }
