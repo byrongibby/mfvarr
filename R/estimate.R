@@ -68,7 +68,7 @@ estimate <- function(m, reps, burn, seed=set.seed(runif(1,0,1e6)))
     if(i > burn) {
       post$Y[i - burn,] <- as.vector(Z.draw[,(M+1):(K+1)])
       post$Z[i - burn,] <- as.vector(Z.draw[,])
-      post$B[i - burn,] <- b.draw
+      post$A[i - burn,] <- b.draw
       post$S[i - burn,] <- as.vector(S.draw)
     }
   }
