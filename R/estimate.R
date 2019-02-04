@@ -6,6 +6,7 @@ estimate <- function(m, reps, burn, seed=set.seed(runif(1,0,1e6)))
   set.seed(seed)
   
   # VAR model parameters 
+  N <- nrow(m$obs)
   M <- 1
   K <- ncol(m$obs)
   p <- m$lag
@@ -21,10 +22,12 @@ estimate <- function(m, reps, burn, seed=set.seed(runif(1,0,1e6)))
                     H=matrix(0,K,K))
   ### List of function output
   post <- list()
+  post$draws <- reps-burn
+  post$N <- N
+  post$K <- K
   post$p <- p
-  post$K <- K 
-  post$Y <- matrix(NA, reps-burn, K*nrow(m$obs))
-  post$Z <- matrix(NA, reps-burn, (K*p+M)*nrow(m$obs))
+  post$Y <- matrix(NA, reps-burn, K*N)
+  post$Z <- matrix(NA, reps-burn, (K*p+M)*N)
   post$A <- matrix(NA, reps-burn, K*(M+K*p))
   post$S <- matrix(NA, reps-burn, K*K)
 

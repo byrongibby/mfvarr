@@ -1,8 +1,9 @@
 nowcast <- function(m)
 {
+  out <- list()
   # Nowcast-quarter draws
-  Y_array      <- array(t(m$Y), dim=c(nrow(m$obs),K,reps-burn))
-  last_quarter <- apply(Y_array[(nrow(m$Y)-2):nrow(m$Y),,], c(2,3), mean)
+  Y_array      <- array(t(m$Y), dim=c(m$N,m$K,m$draws))
+  last_quarter <- apply(Y_array[(m$N-2):m$N,,], c(2,3), mean)
   out$draws    <- split(last_quarter, slice.index(last_quarter, 1))
   # Name the densities after their corresponding variables.
   names(out$draws) <- m$names
