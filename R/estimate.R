@@ -84,6 +84,7 @@ estimate <- function(m, reps, burn, seed=set.seed(runif(1,0,1e6)))
   out <- post
   out$tsp <- tsp(m$obs)
   out$names <- colnames(m$obs)
+  out$nowcast <- m$nowcast
   class(out) <- "MFVAR"
   return(out)
 }

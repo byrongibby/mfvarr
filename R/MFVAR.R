@@ -1,5 +1,5 @@
 MFVAR <-
-function(monthly, quarterly, p=3, prior="default") {
+function(monthly, quarterly, p=3, prior="default", nowcast.quarter=NULL) {
   
   # Restricted options for MFVAR
   type="const"
@@ -53,6 +53,33 @@ function(monthly, quarterly, p=3, prior="default") {
   # Create a prior for starting state (Kalman Filter) from training data
   y1 <- as.matrix(c(1,as.vector(t(YY[(nrow(YY)-p+1):nrow(YY),]))))
 
+  #------------------- NOWCAST INFORMATION -------------------#
+  
+  # If not specified the nowcast quarter is set to the last incomplete quarter
+  if(is.null(nowcast.quarter))
+    nowcast.quarter <- c(floor(tsp(x)[2]),floor(round(tsp(x)[2]%%1*12)/3)+1)
+  
+  
+  # Index months of nowcast quarter as integers (multiplied by 12)
+  months.int <- round(nowcast.quarter[1]*12+(nowcast.quarter[2]-1)*3 + c(0, 1, 2))
+  
+  # Nowcast quarter position index
+  nowcast.index <- c(which(months.int[1]==round(time(x)*12)),
+                     which(months.int[2]==round(time(x)*12)),
+                     which(months.int[3]==round(time(x)*12)))
+  
+  # Deal with nowcast quarter possibly being out of range
+  if(length(nowcast.index)==0) {
+    nowcast.index <- nrow(x)
+    months.int <- round(tsp(x)[2]*12 + c(0, 1, 2))
+  }
+    
+  # Ensure the nowcast quarter is "complete"
+  add.n.rows <- 3-length(nowcast.index)
+  if(add.n.rows < 0)
+    x <- ts(rbind(x, matrix(NA,add.n.rows,ncol(x))), freq=12, start=tsp(x)[1])
+  
+    
   #------------------- CREATE OBSERVATION ARRAY -------------------#
 
   # Typical quarterly, monthly, and combined observation matrix
@@ -141,7 +168,8 @@ function(monthly, quarterly, p=3, prior="default") {
   out <- list("obs"=x,
               "lag"=p,
               "filtmat"=list("ML_z"=ML_z,"Acomp"=Acomp,"Scomp"=Scomp,"y1"=y1),
-              "dummy"=list("YD"=YD,"ZD"=ZD))
+              "dummy"=list("YD"=YD,"ZD"=ZD),
+              "nowcast"=list("months.int"=months.int,"index"=nowcast.index))
   class(out) <- "MFVAR.model"
   return(out)
 }
