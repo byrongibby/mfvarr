@@ -11,7 +11,25 @@ summary.MFVAR <- function(m, probs=c(0.05, 0.50, 0.95))
   }
   
   # Provide the regressand at the quartlery frequency
-  out$quarterly <- lapply(out$monthly, mon2qtr)
+  
+  # Reshape matrix into an array
+  post_Y_array <- array(t(m$Y),dim=c(m$N, m$K, m$draws)) 
+  
+  yy <- apply(post_Y_array, 3, 
+              function(obs_array, N, K) {
+                # Drop last quarter if incomplete, first quarter alwas complete (by assumption)
+                monthly <- obs_array[1:(N-N%%3),]
+                # Reshape and average over every 3 months to return quarterly series
+                quarterly <- apply(array(monthly, dim=c(3, nrow(monthly)/3, K)), 2:3, mean)
+              }, m$N, m$K)
+  
+  # Return the regressand as a time series at the specified percentiles
+  out$quarterly <- list()
+  for(p in probs) {
+    out$quarterly[[paste("pctile_",as.character(p*100), sep="")]] <- 
+      ts(matrix(apply(t(yy),2,quantile,probs=p),ncol=m$K),frequency=4,start=m$tsp[1])
+    colnames(out$quarterly[[paste("pctile_",as.character(p*100), sep="")]]) <- m$names
+  }
   
   # Parameter estimates and print method to be added...
   
