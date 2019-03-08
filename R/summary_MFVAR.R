@@ -26,6 +26,14 @@ summary.MFVAR <- function(m, probs=c(0.05, 0.50, 0.95))
               }, m$N, m$K)
   
   # Return the regressand as a time series at the specified percentiles
+  out$quarterly <- list()
+  for(p in probs) {
+    out$quarterly[[paste("pctile_",as.character(p*100), sep="")]] <- 
+      ts(matrix(apply(t(yy),2,quantile,probs=p),ncol=m$K),frequency=4,start=m$tsp[1])
+    colnames(out$quarterly[[paste("pctile_",as.character(p*100), sep="")]]) <- m$names
+  }
+  
+  # Return the coefficient matrix at the specified percentiles
   out$A <- list()
   for(p in probs) {
     out$A[[paste("pctile_",as.character(p*100), sep="")]] <- 
