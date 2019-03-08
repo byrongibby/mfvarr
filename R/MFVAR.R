@@ -76,8 +76,11 @@ function(monthly, quarterly, p=3, prior="default", nowcast.quarter=NULL) {
     
   # Ensure the nowcast quarter is "complete"
   add.n.rows <- 3-length(nowcast.index)
-  if(add.n.rows > 0)
+  if(add.n.rows > 0) {
     x <- ts(rbind(x, matrix(NA,add.n.rows,ncol(x))), freq=12, start=tsp(x)[1])
+    nowcast.index <- nowcast.index:(nowcast.index+add.n.rows)
+  }
+    
   
     
   #------------------- CREATE OBSERVATION ARRAY -------------------#
