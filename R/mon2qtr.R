@@ -42,7 +42,7 @@ function(monthly, aggregation="mean")
 
     quarterly <- NULL
     for(i in 1:NCOL(monthly)) {
-        monthly.reshape <- matrix(monthly[,i],3,NROW(monthly)/3)
+        monthly.reshape <- matrix(as.matrix(monthly)[,i],3,NROW(monthly)/3)
         quarterly <- cbind(quarterly, agg.transform(monthly.reshape))
     }
 

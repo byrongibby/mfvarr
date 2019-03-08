@@ -74,8 +74,8 @@ shock.decomp <- function(m) {
                               freq=frq, start=sdt, names=shock.names), 
            "decomp"      = ts(t(shocks[i,,]) + t(consts[i,,]), 
                               freq=frq, start=sdt, names=shock.names),
-           "series"      = m$monthly$pctile_50[-(1:p), i],
-           "series.omit" = m$monthly$pctile_50[-(1:p), i] - apply(t(consts[i,,]), 1, sum))
+           "series"      = window(m$monthly$pctile_50[, i], start=sdt),
+           "series.omit" = window(m$monthly$pctile_50[, i], start=sdt) - apply(t(consts[i,,]), 1, sum))
   } 
  
   return(out)
