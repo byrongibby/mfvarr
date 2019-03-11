@@ -78,5 +78,6 @@ shock.decomp <- function(m) {
            "series.omit" = window(m$monthly$pctile_50[, i], start=sdt) - apply(t(consts[i,,]), 1, sum))
   } 
  
+  class(out) <- "MFVAR.decomp"
   return(out)
 }

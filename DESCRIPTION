@@ -6,5 +6,5 @@ Date: 2018-07-17
 Author: Byron Botha
 Maintainer: Byron Botha <Byron.Botha@resbank.co.za>
 Description: Naive implementation of a simple mixed-frequency VAR using Bayesian techniques for the purposes of forecasting economic variables.
-Depends: KFAS
+Depends: KFAS, colorspace
 License: GPL-2
