@@ -20,7 +20,7 @@ plot.MFVAR.decomp <- function(m, series.name=NA, start.plot=NA, type="const", qu
   index.comp  <- seq(tsp(series.type)[1], tsp(series.type)[2], 1/tsp(series.type)[3])
   components  <- t(series.type)
   
-  colours <- diverge_hcl(ncol(series.type))
+  colours <- diverge_hcl(ncol(series.type), c=100, l=c(50,90), power=1)
   
   neg <- components*(components < 0)
   pos <- components*(components > 0)

@@ -23,13 +23,16 @@ estimate <- function(m, reps, burn, seed=set.seed(runif(1,0,1e6)))
   ### List of function output
   post <- list()
   post$draws <- reps-burn
-  post$N <- N
-  post$K <- K
-  post$p <- p
-  post$Y <- matrix(NA, reps-burn, K*N)
-  post$Z <- matrix(NA, reps-burn, (K*p+M)*N)
-  post$A <- matrix(NA, reps-burn, K*(M+K*p))
-  post$S <- matrix(NA, reps-burn, K*K)
+  post$N     <- N
+  post$K     <- K
+  post$p     <- p
+  post$ML_z  <- m$filtmat$ML_z
+  post$y1    <- m$filtmat$y1
+  post$obs   <- m$obs
+  post$Y     <- matrix(NA, reps-burn, K*N)
+  post$Z     <- matrix(NA, reps-burn, (K*p+M)*N)
+  post$A     <- matrix(NA, reps-burn, K*(M+K*p))
+  post$S     <- matrix(NA, reps-burn, K*K)
 
   #------------------- MCMC LOOP -------------------#
   
