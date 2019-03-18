@@ -15,7 +15,8 @@ decomp_smoother <- function(m) {
 
   # Calculate the inverse of a matrix dropping all rows and columns containing a zero on the diagonal
   inv <- function(X, index) {
-    X[index,index] <- solve(X[index,index])
+    if(nrow(X[index,index]) != 0)
+      X[index,index] <- solve(X[index,index])
     return(X) }
   
   # Dimensions of the observation matrix
