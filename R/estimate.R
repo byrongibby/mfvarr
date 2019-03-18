@@ -60,7 +60,7 @@ estimate <- function(m, reps, burn, seed=set.seed(runif(1,0,1e6)))
       B.draw <- matrix(b.draw,M+K*p,K)
       # If stable VAR drawn...
       if(stable(B.draw,K,p,M,allow_ur=TRUE)) {
-        # Draw VAR covariance coeffcients.
+        # Draw VAR covariance coefficients.
         S.draw <- riwish(nrow(Y), solve(crossprod(Y-Z%*%B.draw)))
         # Update VAR parameters in SSModel.
         SSMvar["T"][(M+1):(K+M),,1] <- t(B.draw)
