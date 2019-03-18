@@ -1,4 +1,4 @@
-shock.decomp <- function(m) {
+decomp_var <- function(m) {
   
   #------------------- INPUT VALIDATION -------------------#
   K <- m$K; p <- m$p; M <- 1
