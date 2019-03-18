@@ -24,7 +24,7 @@ decomp_smoother <- function(m) {
   # Calculate F inverse and L matrices (pages 85 and 87 respectively)
   Finv <- array(NA,dim=c(dimZ[1],dimZ[1],dimZ[3]))
   L <- array(NA,dim=c(dimZ[2],dimZ[2],dimZ[3]))
-  Finv[,,1] <- mvi$F[,,i]
+  Finv[,,1] <- mvi$F[,,1]
   L[,,1] <- m$SSMvar$T[,,1]%*%(diag(dimZ[2]) - kfs$P[,,1]%*%t(m$SSMvar$Z[,,1])%*%Finv[,,1]%*%m$SSMvar$Z[,,1])
   for(i in 2:dimZ[3]) {
     Finv[,,i] <- inv(mvi$F[,,i], which(apply(m$SSMvar$Z[,,i],1,sum)!=0))
