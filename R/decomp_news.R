@@ -6,7 +6,9 @@ decomp_news <- function(m, update_months, variable="gdp") {
   variable_index <- which(colnames(m$SSMvar$y)==variable)
   
   # Return news decomposition of variable of interest
-  decomp_variable <- apply(decomp[variable_index+1,,update_months],1,mean)
+  decomp_variable <- list()
+  decomp_variable$monthly <- decomp[variable_index+1,,update_months]
+  decomp_variable$quarterly <- apply(decomp_variable$monthly,1,mean)
   
   return(decomp_variable)
 }
