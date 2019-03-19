@@ -58,40 +58,30 @@ function(monthly, quarterly, p=3, prior="default", nowcast.quarter=NULL) {
   # If not specified the nowcast quarter is set to the last incomplete quarter
   if(is.null(nowcast.quarter))
     nowcast.quarter <- c(floor(tsp(x)[2]),floor(round(tsp(x)[2]%%1*12)/3)+1)
-  
-  
   # Index months of nowcast quarter as integers (multiplied by 12)
   months.int <- round(nowcast.quarter[1]*12+(nowcast.quarter[2]-1)*3 + c(0, 1, 2))
-  
   # Nowcast quarter position index
   nowcast.index <- c(which(months.int[1]==round(time(x)*12)),
                      which(months.int[2]==round(time(x)*12)),
                      which(months.int[3]==round(time(x)*12)))
-  
   # Deal with nowcast quarter possibly being out of range
   if(length(nowcast.index)==0) {
     warning("Nowcast quarter out of range, setting nowcast to last incomplete quarter.")
     nowcast.quarter <- c(floor(tsp(x)[2]),floor(round(tsp(x)[2]%%1*12)/3)+1)
-    
-    
     # Index months of nowcast quarter as integers (multiplied by 12)
     months.int <- round(nowcast.quarter[1]*12+(nowcast.quarter[2]-1)*3 + c(0, 1, 2))
-    
     # Nowcast quarter position index
     nowcast.index <- c(which(months.int[1]==round(time(x)*12)),
                        which(months.int[2]==round(time(x)*12)),
                        which(months.int[3]==round(time(x)*12)))
   }
-    
   # Ensure the nowcast quarter is "complete"
-  add_nrows <- 3-length(nowcast.index)
-  if(add.n.rows > 0) {
-    x <- ts(rbind(x, matrix(NA,add_nrows,ncol(x))), freq=12, start=tsp(x)[1])
+  add_n_rows <- 3-length(nowcast.index)
+  if(add_n_rows > 0) {
+    x <- ts(rbind(x, matrix(NA,add_n_rows,ncol(x))), freq=12, start=tsp(x)[1])
     nowcast.index <- nowcast.index[1]:(nowcast.index[1]+2)
   }
-    
-  
-    
+
   #------------------- CREATE OBSERVATION ARRAY -------------------#
 
   # Typical quarterly, monthly, and combined observation matrix
