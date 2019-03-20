@@ -301,20 +301,16 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default", nowc
   
   # Nowcast-quarter draws
   last_quarter <- apply(Y_[nowcast_index,,], c(2,3), mean)
+  last_quarter_list <- split(last_quarter, slice.index(last_quarter, 1))
+  names(last_quarter_list) <- colnames(y)
   
   # Create percentile function
   pctile <- function(x) { return(function(probs) {quantile(x, probs)}) }
   
   out <- list()
-  
-  if(any(grepl("gdp|GDP",colnames(y)))) {
-    gdp <- last_quarter[which(grepl("gdp|GDP",colnames(y)))[1],]
-    out$ecdf <- ecdf(gdp)
-    out$pctile <- pctile(gdp)
-  } else {
-    warning("No variable named 'GDP', skipping creation of 'ecdf' and 'pctile'.")  
-  }
-                       
+  out$nowcast_index <- nowcast_index
+  out$ecdf <- lapply(last_quarter_list, ecdf)
+  out$pctiles <- lapply(last_quarter_list, pctile)
   out$y <- y_
   out$yq <- yq_
   out$VAR <- list("N"=N, "K"=K, "p"=p, "M"=1, "A"=A_, "S"=S_)
