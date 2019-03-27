@@ -32,7 +32,7 @@ decomp_smoother <- function(m) {
     L[,,i] <- m$SSM$T[,,1]%*%(diag(dimZ[2]) - kfs$P[,,i]%*%t(m$SSM$Z[,,i])%*%Finv[,,i]%*%m$SSM$Z[,,i])
   }
   
-  # Calculate r_t and P_t*r_{t-1} - the rows of r are not "collapsed", hence it is an array and not a vector
+  # Calculate r_t and P_t*r_{t-1} - the rows of r are not "collapsed/summed", hence it is an array and not a vector
   r_array <- array(NA, dim=c(dimZ[2],dimZ[1],dimZ[3]))
   smoother_update <- array(NA, dim=c(dimZ[2],dimZ[1],dimZ[3]))
   r_array[,,dimZ[3]] <- matrix(0, dimZ[2], dimZ[1])

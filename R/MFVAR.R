@@ -256,10 +256,10 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default", nowc
   
   # Return the regressand as a time series at the specified percentiles
   y_ <- list()
-  for(p in probs) {
-    y_[[paste("pctile_",as.character(p*100), sep="")]] <- 
-      ts(matrix(apply(Y_draws,2,quantile,probs=p),N,K),frequency=12,start=tsp(y)[1])
-    colnames(y_[[paste("pctile_",as.character(p*100), sep="")]]) <- colnames(y)
+  for(i in probs) {
+    y_[[paste("pctile_",as.character(i*100), sep="")]] <- 
+      ts(matrix(apply(Y_draws,2,quantile,probs=i),N,K),frequency=12,start=tsp(y)[1])
+    colnames(y_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
   }
   
   # Provide the regressand at the quartlery frequency
@@ -273,26 +273,26 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default", nowc
                 quarterly <- apply(array(monthly, dim=c(3, nrow(monthly)/3, KK)), 2:3, mean)
               }, N, K)
   yq_ <- list()
-  for(p in probs) {
-    yq_[[paste("pctile_",as.character(p*100), sep="")]] <- 
-      ts(matrix(apply(t(yy),2,quantile,probs=p),ncol=K),frequency=4,start=tsp(y)[1])
-    colnames(yq_[[paste("pctile_",as.character(p*100), sep="")]]) <- colnames(y)
+  for(i in probs) {
+    yq_[[paste("pctile_",as.character(i*100), sep="")]] <- 
+      ts(matrix(apply(t(yy),2,quantile,probs=i),ncol=K),frequency=4,start=tsp(y)[1])
+    colnames(yq_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
   }
   
   # Return the coefficient matrices at the specified percentiles
   A_ <- list()
-  for(p in probs) {
-    A_[[paste("pctile_",as.character(p*100), sep="")]] <- 
-      matrix(apply(A_draws,2,quantile,probs=p),ncol=K)
-    colnames(A_[[paste("pctile_",as.character(p*100), sep="")]]) <- colnames(y)
+  for(i in probs) {
+    A_[[paste("pctile_",as.character(i*100), sep="")]] <- 
+      matrix(apply(A_draws,2,quantile,probs=i),ncol=K)
+    colnames(A_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
   }
   
   S_ <- list()
-  for(p in probs) {
-    S_[[paste("pctile_",as.character(p*100), sep="")]] <- 
-      matrix(apply(S_draws,2,quantile,probs=p),ncol=K)
-    colnames(S_[[paste("pctile_",as.character(p*100), sep="")]]) <- colnames(y)
-    rownames(S_[[paste("pctile_",as.character(p*100), sep="")]]) <- colnames(y)
+  for(i in probs) {
+    S_[[paste("pctile_",as.character(i*100), sep="")]] <- 
+      matrix(apply(S_draws,2,quantile,probs=i),ncol=K)
+    colnames(S_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
+    rownames(S_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
   }
   
   # Update the state space model with the median posterior matrices
@@ -308,12 +308,12 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default", nowc
   pctile <- function(x) { return(function(probs) {quantile(x, probs)}) }
   
   out <- list()
-  out$nowcast_index <- nowcast_index
-  out$ecdf <- lapply(last_quarter_list, ecdf)
-  out$pctiles <- lapply(last_quarter_list, pctile)
-  out$y <- y_
-  out$yq <- yq_
-  out$VAR <- list("N"=N, "K"=K, "p"=p, "M"=1, "A"=A_, "S"=S_)
+  out$nowcast <- list("index"=nowcast_index, 
+                      "ecdf"=lapply(last_quarter_list, ecdf), 
+                      "pctiles"=lapply(last_quarter_list, pctile))
+  out$pctiles <- list("y"=y_, "yq"=yq_, "A"=A_, "S"=S_)
+  out$VAR <- list("N"=N, "K"=K, "p"=p, "M"=1, "y"=y_$pctile_50, 
+                  "A"=A_$pctile_50, "S"=S_$pctile_50)
   out$SSM <- SSM
   
   class(out$VAR) <- "BVAR"

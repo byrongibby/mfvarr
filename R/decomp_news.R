@@ -5,11 +5,11 @@ decomp_news <- function(m, variable="gdp") {
   # Index of variable of interest
   variable_index <- which(colnames(m$SSM$y)==variable)
   
-  a <- decomp$a[m$nowcast_index, variable_index+1]
-  alphahat <- decomp$alphahat[m$nowcast_index, variable_index+1]
-  smoother_update <- decomp$smoother_update[variable_index+1,,m$nowcast_index]
+  a <- decomp$a[m$nowcast$index, variable_index+1]
+  alphahat <- decomp$alphahat[m$nowcast$index, variable_index+1]
+  smoother_update <- decomp$smoother_update[variable_index+1,,m$nowcast$index]
   
-  scale_factor <- m$pctiles[[variable_index]](0.5)/mean(alphahat)
+  scale_factor <- m$nowcast$pctiles[[variable_index]](0.5)/mean(alphahat)
   
   # Return news decomposition of variable of interest
   decomp_variable <- list()
@@ -17,5 +17,6 @@ decomp_news <- function(m, variable="gdp") {
   decomp_variable$alphahat <- mean(alphahat)*scale_factor
   decomp_variable$smoother_update <- apply(smoother_update,1,mean)*scale_factor
   
+  class(decomp_variable) <- "MFVAR.nowcast.news"
   return(decomp_variable)
 }
