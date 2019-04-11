@@ -25,12 +25,12 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default")
   # Breadth of monthly and quarterly data 
   Kq <- NCOL(quarterly)
   Km <- NCOL(monthly)
-  # Start month of quarterly data (2 months prior to "starting quarter")
-  month.start <- c(floor(tsp(quarterly)[1]), tsp(quarterly)[1]%%1*12+1)
+  # Start month of quarterly data (2 months prior to initial quarter)
+  month_start <- c(floor(tsp(quarterly)[1]), round(tsp(quarterly)[1]%%1*12+1))
   # Create quarterly and monthly observation time series
   yq <- ts(matrix(rep(quarterly,each=3),NROW(quarterly)*3,Kq), 
            frequency = 12, 
-           start = month.start)
+           start = month_start)
   ym <- monthly
   # Data for estimating the initial VAR parameters
   y.init <- na.omit(cbind(ym, yq))
@@ -41,7 +41,7 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default")
   y <- cbind(ym, yq)
   colnames(y) <- c(colnames(monthly), colnames(quarterly))
 
-  #------------------- 'TRAINING DATA' MEAN AND VARIANCE FOR PRIOR -------------------#
+  #------------------- 'TRAINING DATA' MEAN AND VARIANCE FOR PRIOR/DUMMY DATA -------------------#
 
   # number of variables
   K <- ncol(y.init)
@@ -80,6 +80,7 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default")
   # Ensure the data includes the nowcast quarter 
   if(N < nowcast_index[3]) {
     # append NAs to end of data while preserving ts class
+    y <- ts(rbind(y, matrix(NA,nowcast_index[3]-N,ncol(y))), freq=12, start=tsp(y)[1])
   }
   #------------------- CREATE OBSERVATION ARRAY -------------------#
 
@@ -243,21 +244,21 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default")
   for(i in probs) {
     y_[[paste("p",as.character(i*100), sep="")]] <- 
       ts(matrix(apply(Y_draws,2,quantile,probs=i),N,K),frequency=12,start=tsp(y)[1])
-    colnames(y_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
+    colnames(y_[[paste("p",as.character(i*100), sep="")]]) <- colnames(y)
   }
   # Return the coefficient matrices at the specified percentiles
   A_ <- list()
   for(i in probs) {
     A_[[paste("p",as.character(i*100), sep="")]] <- 
       matrix(apply(A_draws,2,quantile,probs=i),ncol=K)
-    colnames(A_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
+    colnames(A_[[paste("p",as.character(i*100), sep="")]]) <- colnames(y)
   }
   S_ <- list()
   for(i in probs) {
     S_[[paste("p",as.character(i*100), sep="")]] <- 
       matrix(apply(S_draws,2,quantile,probs=i),ncol=K)
-    colnames(S_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
-    rownames(S_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
+    colnames(S_[[paste("p",as.character(i*100), sep="")]]) <- colnames(y)
+    rownames(S_[[paste("p",as.character(i*100), sep="")]]) <- colnames(y)
   }
   
   # Update the state space model with the median posterior matrices
