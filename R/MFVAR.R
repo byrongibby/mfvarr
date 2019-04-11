@@ -1,8 +1,10 @@
-MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default", nowcast=NULL) 
+MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default") 
 {
   # Restricted options for MFVAR
   type="const"
   dummy=NULL
+ 
+  if(p < 3) p=3
   
   if(any(grepl("default",prior))) {
     prior = list("prior"="minnesota", 
@@ -11,6 +13,7 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default", nowc
                                     "rho"    = 2.0, 
                                     "kappa"  = 1e5))
   }
+
   if(any(grepl("default",mcmc))) {
     mcmc = list("mcmc$reps" = 5000, 
                 "mcmc$burn" = 4000, 
@@ -66,39 +69,20 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default", nowc
   y1 <- as.matrix(c(1,as.vector(t(YY[(nrow(YY)-p+1):nrow(YY),]))))
 
   #------------------- NOWCAST INFORMATION -------------------#
-  
-  # If not specified the nowcast quarter is set to the last incomplete quarter
-  if(is.null(nowcast))
-    nowcast <- c(floor(tsp(y)[2]),floor(round(tsp(y)[2]%%1*12)/3)+1)
-  # Index months of nowcast quarter as integers (multiplied by 12)
-  month_int <- round(nowcast[1]*12+(nowcast[2]-1)*3 + c(0, 1, 2))
-  # Nowcast quarter position index
-  nowcast_index <- c(which(month_int[1]==round(time(y)*12)),
-                     which(month_int[2]==round(time(y)*12)),
-                     which(month_int[3]==round(time(y)*12)))
-  # Deal with nowcast quarter possibly being out of range
-  if(length(nowcast_index)==0) {
-    warning("Nowcast quarter out of range, setting nowcast to last 'incomplete' quarter.")
-    nowcast <- c(floor(tsp(y)[2]),floor(round(tsp(y)[2]%%1*12)/3)+1)
-    # Index months of nowcast quarter as integers (multiplied by 12)
-    month_int <- round(nowcast[1]*12+(nowcast[2]-1)*3 + c(0, 1, 2))
-    # Nowcast quarter position index
-    nowcast_index <- c(which(month_int[1]==round(time(y)*12)),
-                       which(month_int[2]==round(time(y)*12)),
-                       which(month_int[3]==round(time(y)*12)))
-  }
-  # Ensure the nowcast quarter is "complete"
-  add_n_rows <- 3-length(nowcast_index)
-  if(add_n_rows > 0) {
-    y <- ts(rbind(y, matrix(NA,add_n_rows,ncol(y))), freq=12, start=tsp(y)[1])
-    nowcast_index <- nowcast_index[1]:(nowcast_index[1]+2)
-  }
-
-  #------------------- CREATE OBSERVATION ARRAY -------------------#
-
+ 
   # Length of data 
   N <- nrow(y)
-  
+   
+  # The nowcast will be the first incomplete quarter 
+  nowcast_quarter <- tsp(na.omit(quarterly))[2]+1/4
+  # Nowcast quarter position vector
+  nowcast_index <- which(round(nowcast_quarter*12)==round(time(y)*12))+0:2
+  # Ensure the data includes the nowcast quarter 
+  if(N < nowcast_index[3]) {
+    # append NAs to end of data while preserving ts class
+  }
+  #------------------- CREATE OBSERVATION ARRAY -------------------#
+
   # Typical quarterly, monthly, and combined observation matrix
   L_qz <- matrix(rep(cbind(matrix(0,Kq,Km),diag(1/3,Kq)),3),Kq,Km*3+Kq*3)
   L_mz <- cbind(diag(Km),matrix(0,Km,Km*2+Kq*3))
@@ -251,72 +235,47 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default", nowc
   close(pb)
   
   #------------------- OUTPUT -------------------#
-  
+ 
+  # Probabilities for quantile function 
   probs <- c(0.05, 0.50, 0.95)
-  
   # Return the regressand as a time series at the specified percentiles
   y_ <- list()
   for(i in probs) {
-    y_[[paste("pctile_",as.character(i*100), sep="")]] <- 
+    y_[[paste("p",as.character(i*100), sep="")]] <- 
       ts(matrix(apply(Y_draws,2,quantile,probs=i),N,K),frequency=12,start=tsp(y)[1])
     colnames(y_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
   }
-  
-  # Provide the regressand at the quartlery frequency
-  # Reshape matrix into an array
-  Y_ <- array(t(Y_draws),dim=c(N, K, mcmc$reps-mcmc$burn)) 
-  yy <- apply(Y_, 3, 
-              function(obs_array, NN, KK) {
-                # Drop last quarter if incomplete, first quarter always complete (by assumption)
-                monthly <- obs_array[1:(NN-NN%%3),]
-                # Reshape and average over every 3 months to return quarterly series
-                quarterly <- apply(array(monthly, dim=c(3, nrow(monthly)/3, KK)), 2:3, mean)
-              }, N, K)
-  yq_ <- list()
-  for(i in probs) {
-    yq_[[paste("pctile_",as.character(i*100), sep="")]] <- 
-      ts(matrix(apply(t(yy),2,quantile,probs=i),ncol=K),frequency=4,start=tsp(y)[1])
-    colnames(yq_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
-  }
-  
   # Return the coefficient matrices at the specified percentiles
   A_ <- list()
   for(i in probs) {
-    A_[[paste("pctile_",as.character(i*100), sep="")]] <- 
+    A_[[paste("p",as.character(i*100), sep="")]] <- 
       matrix(apply(A_draws,2,quantile,probs=i),ncol=K)
     colnames(A_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
   }
-  
   S_ <- list()
   for(i in probs) {
-    S_[[paste("pctile_",as.character(i*100), sep="")]] <- 
+    S_[[paste("p",as.character(i*100), sep="")]] <- 
       matrix(apply(S_draws,2,quantile,probs=i),ncol=K)
     colnames(S_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
     rownames(S_[[paste("pctile_",as.character(i*100), sep="")]]) <- colnames(y)
   }
   
   # Update the state space model with the median posterior matrices
-  SSM["T"][(M+1):(K+M),,1] <- t(A_$pctile_50)
-  SSM["Q"][(M+1):(K+M),(M+1):(K+M),1] <- S_$pctile_50
-  
-  # Nowcast-quarter draws
-  last_quarter <- apply(Y_[nowcast_index,,], c(2,3), mean)
-  last_quarter_list <- split(last_quarter, slice.index(last_quarter, 1))
-  names(last_quarter_list) <- colnames(y)
-  
-  # Create percentile function
-  pctile <- function(x) { return(function(probs) {quantile(x, probs)}) }
+  SSM["T"][(M+1):(K+M),,1] <- t(A_$p50)
+  SSM["Q"][(M+1):(K+M),(M+1):(K+M),1] <- S_$p50
+ 
+  # Create a new state-space model where it is assumed that the 
+  # quarterly variables are observed on a monthly basis as y_$p50
+  SSM_fixed <- SSM
+  SSM_fixed["Z"][1:K,(M+1):(M+K),1:(nowcast_index[1]-1)] <- diag(K)
+  SSM_fixed["y"] <- y_$p50
   
   out <- list()
-  out$nowcast <- list("index"=nowcast_index, 
-                      "ecdf"=lapply(last_quarter_list, ecdf), 
-                      "pctiles"=lapply(last_quarter_list, pctile))
-  out$pctiles <- list("y"=y_, "yq"=yq_, "A"=A_, "S"=S_)
-  out$VAR <- list("N"=N, "K"=K, "p"=p, "M"=1, "y"=y_$pctile_50, 
-                  "A"=A_$pctile_50, "S"=S_$pctile_50)
+  out$nowcast_index <- nowcast_index
+  out$pctiles <- list("y"=y_, "A"=A_, "S"=S_)
   out$SSM <- SSM
+  out$SSM_fixed <- SSM_fixed 
   
-  class(out$VAR) <- "BVAR"
   class(out) <- "MFVAR"
   
   return(out)
