@@ -270,6 +270,7 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default")
   # Create a new state-space model where it is assumed that the 
   # quarterly variables are observed on a monthly basis as y_$p50
   SSM_fixed <- SSM
+  SSM_fixed["Z"][,,1:(nowcast_index[1]-1)] <- 0
   SSM_fixed["Z"][1:K,(M+1):(M+K),1:(nowcast_index[1]-1)] <- diag(K)
   SSM_fixed["y"] <- y_$p50
   
