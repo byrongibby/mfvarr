@@ -77,7 +77,7 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default")
   # Ensure the data includes the full nowcast quarter 
   if(nrow(y) < nowcast_index[3]) {
     # append NAs to end of data while preserving ts class
-    y <- ts(rbind(y, matrix(NA,nowcast_index[3]-N,ncol(y))), freq=12, start=tsp(y)[1])
+    y <- ts(rbind(y, matrix(NA,nowcast_index[3]-nrow(y),ncol(y))), freq=12, start=tsp(y)[1])
   }
 
   #------------------- CREATE OBSERVATION ARRAY -------------------#
