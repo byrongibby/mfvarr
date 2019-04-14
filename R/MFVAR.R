@@ -68,23 +68,22 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default")
   # Create a prior for starting state (Kalman Filter) from training data
   y1 <- as.matrix(c(1,as.vector(t(YY[(nrow(YY)-p+1):nrow(YY),]))))
 
-  #------------------- NOWCAST INFORMATION -------------------#
- 
-  # Length of data 
-  N <- nrow(y)
-   
+  #------------------- NOWCAST INFORMATION AND FORMATTING -------------------#
+  
   # The nowcast will be the first incomplete quarter 
   nowcast_quarter <- tsp(na.omit(quarterly))[2]+1/4
   # Nowcast quarter position vector
-  nowcast_index <- which(round(nowcast_quarter*12)==round(time(y)*12))+0:2
-  # Ensure the data includes the nowcast quarter 
-  if(N < nowcast_index[3]) {
+  nowcast_index <- round((nowcast_quarter-tsp(y)[1])*12)+0:2
+  # Ensure the data includes the full nowcast quarter 
+  if(nrow(y) < nowcast_index[3]) {
     # append NAs to end of data while preserving ts class
     y <- ts(rbind(y, matrix(NA,nowcast_index[3]-N,ncol(y))), freq=12, start=tsp(y)[1])
-    # Update length of data 
-    N <- nrow(y)
   }
+
   #------------------- CREATE OBSERVATION ARRAY -------------------#
+
+  # Length of data 
+  N <- nrow(y)
 
   # Typical quarterly, monthly, and combined observation matrix
   L_qz <- matrix(rep(cbind(matrix(0,Kq,Km),diag(1/3,Kq)),3),Kq,Km*3+Kq*3)
