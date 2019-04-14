@@ -73,7 +73,7 @@ MFVAR <- function(monthly, quarterly, p=3, prior="default", mcmc="default")
   # The nowcast will be the first incomplete quarter 
   nowcast_quarter <- tsp(na.omit(quarterly))[2]+1/4
   # Nowcast quarter position vector
-  nowcast_index <- round((nowcast_quarter-tsp(y)[1])*12)+0:2
+  nowcast_index <- round((nowcast_quarter-tsp(y)[1])*12)+1:3
   # Ensure the data includes the full nowcast quarter 
   if(nrow(y) < nowcast_index[3]) {
     # append NAs to end of data while preserving ts class
