@@ -1,5 +1,7 @@
 update <- function(monthly, quarterly, m, nowcast=FALSE)
 {
+  p <- (ncol(m$SSM$Z)-1)/nrow(m$SSM$Z)
+
   #------------------- FORMAT DATA -------------------#
 
   # Breadth of monthly and quarterly data 
@@ -45,13 +47,15 @@ update <- function(monthly, quarterly, m, nowcast=FALSE)
     nowcast_quarter <- tsp(na.omit(quarterly))[2]+1/4
     # Nowcast quarter position vector
     nowcast_index <- round((nowcast_quarter-tsp(y)[1])*12)+1:3
-    # Ensure the data includes the full nowcast quarter 
-    if(nrow(y) < nowcast_index[3]) {
-      # append NAs to end of data while preserving ts class
-      y <- ts(rbind(y, matrix(NA,nowcast_index[3]-nrow(y),ncol(y))), freq=12, start=tsp(y)[1])
-    }
+  } else {
+    nowcast_index <- m$nowcast_index
   }
-  
+  # Ensure the data includes the full nowcast quarter 
+  if(nrow(y) < nowcast_index[3]) {
+    # append NAs to end of data while preserving ts class
+    y <- ts(rbind(y, matrix(NA,nowcast_index[3]-nrow(y),ncol(y))), freq=12, start=tsp(y)[1])
+  }
+
   #------------------- CREATE OBSERVATION ARRAY -------------------#
 
   # Length of data 
@@ -82,19 +86,18 @@ update <- function(monthly, quarterly, m, nowcast=FALSE)
     for(i in na.index.ym) 
       ML_z[which(!(abs(y[i,1:Km])>0)),,i] <- 0
 
-
   #------------------- UPDATE DATA AND OBSERVATION MATRICES -------------------#
 
   # Update the state-space model with the new data and observation equation
-  m$SSM["y1"] <- y1
+  m$SSM["a1"] <- y1
   m$SSM["y"] <- y
   m$SSM["Z"] <- ML_z
 
   # Don't update SSM_fixed if the nowcast quarter has possibly changed
   if(!nowcast) {
     # Update the state-space model with fixed monthly observations
-    m$SSM_fixed["y"][m$nowcast_index,] <- y[m$nowcast_index,]
-    m$SSM_fixed["Z"][,,m$nowcast_index] <- ML_z[,,m$nowcast_index]
+    m$SSM_fixed["y"][m$nowcast_index[1]:nrow(y),] <- y[m$nowcast_index[1]:nrow(y),]
+    m$SSM_fixed["Z"][,,m$nowcast_index[1]:dim(ML_z)[3]] <- ML_z[,,m$nowcast_index[1]:dim(ML_z)[3]]
   } else {
     warning("SSM_fixed not updated becasuse nowcast quarter has changed.")
   }
